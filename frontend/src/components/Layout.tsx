@@ -22,7 +22,10 @@ export default function Layout() {
       {!isLoginPage && (
         <header className="navbar">
           <div className="navbar-inner">
-            <h1 className="navbar-brand">{APP_NAME}</h1>
+            <div className="navbar-brand">
+              <img src="/favicon.svg" alt="" className="navbar-logo" aria-hidden />
+              <h1 className="navbar-brand-title">{APP_NAME}</h1>
+            </div>
             {user && (
               <div className="navbar-user">
                 <div className="navbar-avatar" aria-hidden>

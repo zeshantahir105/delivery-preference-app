@@ -104,7 +104,9 @@ export default function Preference() {
                 reset({
                   preference: latest.preference,
                   address: latest.address ?? "",
-                  pickup_time: latest.pickup_time ? latest.pickup_time.slice(0, 16) : "",
+                  pickup_time: latest.pickup_time
+                    ? latest.pickup_time.slice(0, 16)
+                    : "",
                 });
               } else {
                 setOrder(null);
@@ -128,7 +130,9 @@ export default function Preference() {
           reset({
             preference: latest.preference,
             address: latest.address ?? "",
-            pickup_time: latest.pickup_time ? latest.pickup_time.slice(0, 16) : "",
+            pickup_time: latest.pickup_time
+              ? latest.pickup_time.slice(0, 16)
+              : "",
           });
         } else {
           setOrder(null);
@@ -198,7 +202,9 @@ export default function Preference() {
     <div className="page page--preference">
       {step === STEP_PREFERENCE ? (
         <>
-          {/* <h1 className="page-title page--preference-title">Delivery preference</h1> */}
+          {/* <h1 className="page-title page--preference-title">
+            Delivery preference
+          </h1> */}
           {orderError && (
             <p className="error page--preference-error">{orderError}</p>
           )}
@@ -291,9 +297,9 @@ export default function Preference() {
       ) : (
         <>
           <div className="preference-step-header">
-            <h1 className="page-title page--preference-title">
+            {/* <h1 className="page-title page--preference-title">
               Delivery details & summary
-            </h1>
+            </h1> */}
             <button
               type="button"
               onClick={() => setStep(STEP_PREFERENCE)}
