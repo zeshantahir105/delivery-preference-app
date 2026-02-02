@@ -9,6 +9,7 @@ import { AuthProvider } from "../context/AuthContext";
 vi.mock("../api/client", () => ({
   me: vi.fn(),
   getOrder: vi.fn(),
+  getOrders: vi.fn(),
   getOrderSummary: vi.fn(),
   createOrder: vi.fn(),
   updateOrder: vi.fn(),
@@ -33,6 +34,7 @@ describe("Summary (on Preference page)", () => {
   });
 
   it("reflects backend order data when loaded", async () => {
+    const user = userEvent.setup();
     vi.mocked(api.getOrder).mockResolvedValue({
       id: 42,
       user_id: 1,
@@ -43,10 +45,24 @@ describe("Summary (on Preference page)", () => {
     });
 
     renderPreferenceWithOrder("42");
+    
+    // Wait for getOrder to be called and loading to complete
     await waitFor(() => {
       expect(api.getOrder).toHaveBeenCalledWith(42);
+    }, { timeout: 3000 });
+    
+    // Wait for loading to complete and Next button to appear
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+    }, { timeout: 3000 });
+    
+    // Navigate to step 2 to see order details
+    const nextBtn = screen.getByRole("button", { name: /next/i });
+    await user.click(nextBtn);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/42/)).toBeInTheDocument();
     });
-    expect(screen.getByText(/42/)).toBeInTheDocument();
     expect(screen.getByText(/DELIVERY/)).toBeInTheDocument();
     expect(screen.getByText(/123 Main St/)).toBeInTheDocument();
   });
@@ -65,8 +81,23 @@ describe("Summary (on Preference page)", () => {
     });
 
     renderPreferenceWithOrder("1");
+    
+    // Wait for getOrder to be called and loading to complete
     await waitFor(() => {
       expect(api.getOrder).toHaveBeenCalledWith(1);
+    }, { timeout: 3000 });
+
+    // Wait for loading to complete and Next button to appear
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Navigate to step 2 to see summary section
+    const nextBtn = screen.getByRole("button", { name: /next/i });
+    await user.click(nextBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /generate ai summary/i })).toBeInTheDocument();
     });
 
     const btn = screen.getByRole("button", { name: /generate ai summary/i });

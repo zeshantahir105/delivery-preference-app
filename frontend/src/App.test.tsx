@@ -21,7 +21,8 @@ describe("App auth guard", () => {
         </AuthProvider>
       </MemoryRouter>
     );
-    await screen.findByRole("heading", { name: /sign in/i });
-    expect(screen.getByRole("heading", { name: /sign in/i })).toBeInTheDocument();
+    // Login page shows "Sign in" button text, not a heading
+    await screen.findByRole("button", { name: /sign in/i });
+    expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 });

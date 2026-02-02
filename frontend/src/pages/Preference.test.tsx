@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -10,6 +10,7 @@ vi.mock("../api/client", () => ({
   me: vi.fn(),
   createOrder: vi.fn(),
   getOrder: vi.fn(),
+  getOrders: vi.fn(),
   getOrderSummary: vi.fn(),
   updateOrder: vi.fn(),
 }));
@@ -33,19 +34,47 @@ describe("Preference", () => {
 
   it("rejects past datetime for DELIVERY", async () => {
     const user = userEvent.setup();
+    vi.mocked(api.getOrders).mockResolvedValue([]);
+    
     renderPreference();
-    await screen.findByText(/delivery preference/i);
+    
+    // Wait for loading to complete - check that getOrders was called
+    await waitFor(() => {
+      expect(api.getOrders).toHaveBeenCalled();
+    }, { timeout: 3000 });
+    
+    // Wait for form to be ready
+    await waitFor(() => {
+      expect(screen.getByText(/set preference/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
 
     await user.selectOptions(screen.getByRole("combobox"), "DELIVERY");
-    await user.type(screen.getByLabelText(/address/i), "123 Main St");
-    const pastDate = "2020-01-01T12:00";
-    const pickupInput = screen.getByLabelText(/pickup time/i);
-    await user.type(pickupInput, pastDate);
-    await user.click(screen.getByRole("button", { name: /save/i }));
-
+    
+    // Wait for conditional fields to appear
     await waitFor(() => {
-      expect(screen.getByText(/future/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/address/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/pickup time/i)).toBeInTheDocument();
     });
+    
+    await user.type(screen.getByLabelText(/address/i), "123 Main St");
+    
+    // Set past date using fireEvent for datetime-local input
+    const pickupInput = screen.getByLabelText(/pickup time/i) as HTMLInputElement;
+    const pastDate = "2020-01-01T12:00";
+    
+    // Clear and set value using fireEvent (more reliable for datetime-local)
+    fireEvent.change(pickupInput, { target: { value: pastDate } });
+    
+    // Trigger form submission
+    const saveButton = screen.getByRole("button", { name: /save/i });
+    await user.click(saveButton);
+
+    // Wait for validation error to appear
+    await waitFor(() => {
+      const errorText = screen.queryByText(/future/i);
+      expect(errorText).toBeInTheDocument();
+    }, { timeout: 3000 });
+    
     expect(api.createOrder).not.toHaveBeenCalled();
   });
 });
